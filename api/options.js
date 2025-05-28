@@ -1,36 +1,36 @@
-import fetch from 'node-fetch';
+import eta from 'eta';
 
 export default async function handler(req, res) {
-  const { ticker } = req.query;
-  if (!ticker) return res.status(400).json({ error: "Missing ticker" });
+  const { ticker = "SPY" } = req.query;
 
-  const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/options/${ticker}`;
+  const data = {
+    title: `Options for ${ticker}`,
+    user: "Randy",
+    items: ["Call 420C", "Put 410P", "Call 430C"]
+  };
+
+  const template = `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <title><%= it.title %></title>
+    </head>
+    <body>
+      <h1>Hello <%= it.user %>!</h1>
+      <ul>
+        <% for (let item of it.items) { %>
+          <li><%= item %></li>
+        <% } %>
+      </ul>
+    </body>
+  </html>`;
 
   try {
-    const response = await fetch(yahooUrl);
-
-    if (!response.ok) {
-      console.error("Yahoo response error:", response.status);
-      return res.status(502).json({ error: `Yahoo returned ${response.status}` });
-    }
-
-    const data = await response.json();
-
-    const result = data?.optionChain?.result?.[0];
-    if (!result || !result.options?.length) {
-      return res.status(404).json({ error: "No options data found" });
-    }
-
-    const quote = result.quote;
-    const options = result.options[0];
-
-    return res.status(200).json({
-      price: quote?.regularMarketPrice ?? null,
-      calls: options.calls ?? [],
-      puts: options.puts ?? [],
-    });
-  } catch (err) {
-    console.error("Fetch error:", err);
-    return res.status(500).json({ error: "Fetch failed" });
+    const html = eta.render(template, data);
+    res.setHeader("Content-Type", "text/html");
+    res.status(200).send(html);
+  } catch (error) {
+    console.error("Eta render failed:", error);
+    res.status(500).send("Template rendering error.");
   }
 }
