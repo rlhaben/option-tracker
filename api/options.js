@@ -1,4 +1,4 @@
-import { render } from 'eta';
+import * as eta from 'eta';
 
 export default async function handler(req, res) {
   const { ticker = "SPY" } = req.query;
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
   </html>`;
 
   try {
-    const html = render(template, data);
+    const html = eta.render(template, data);
     res.setHeader("Content-Type", "text/html");
     res.status(200).send(html);
   } catch (error) {
