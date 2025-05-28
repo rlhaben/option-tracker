@@ -1,22 +1,27 @@
-export default async function handler(req, res) {
-  const { ticker } = req.query;
-  if (!ticker) return res.status(400).json({ error: "Missing ticker" });
+async function getData() {
+  const ticker = document.getElementById("ticker").value.toUpperCase();
+  const res = await fetch(`/api/options?ticker=${ticker}`);
+  const data = await res.json();
 
-  try {
-    const url = `https://query1.finance.yahoo.com/v7/finance/options/${ticker}`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    const result = data.optionChain.result;
-    const quote = result.quote;
-    const options = result.options;
-
-    res.status(200).json({
-      price: quote.regularMarketPrice,
-      calls: options.calls,
-      puts: options.puts,
-    });
-  } catch (err) {
-    res.status(500).json({ error: "Fetch failed" });
+  if (data.error) {
+    document.getElementById("result").innerHTML = `<p>Error: ${data.error}</p>`;
+    return;
   }
+
+  const price = data.price;
+  const firstCall = data.calls?.[0];
+
+  if (!firstCall) {
+    document.getElementById("result").innerHTML = `<p>No call options available.</p>`;
+    return;
+  }
+
+  const avgPrice = (firstCall.bid + firstCall.ask) / 2;
+
+  document.getElementById("result").innerHTML = `
+    <p>Underlying Price: $${price}</p>
+    <p>First Call Strike: ${firstCall.strike}</p>
+    <p>Bid/Ask: ${firstCall.bid} / ${firstCall.ask}</p>
+    <p>Estimated Value: $${avgPrice.toFixed(2)}</p>
+  `;
 }
