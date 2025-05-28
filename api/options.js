@@ -1,27 +1,38 @@
-export async function getData() {
-  const ticker = document.getElementById("ticker").value.toUpperCase();
-  const res = await fetch(`/api/options?ticker=${ticker}`);
-  const data = await res.json();
+export default async function handler(req, res) {
+  const { ticker } = req.query;
+  console.log("Received ticker:", ticker);
 
-  if (data.error) {
-    document.getElementById("result").innerHTML = `<p>Error: ${data.error}</p>`;
-    return;
+  if (!ticker) {
+    return res.status(400).json({ error: "Missing ticker" });
   }
 
-  const price = data.price;
-  const firstCall = data.calls?.[0];
+  try {
+    const url = `https://query1.finance.yahoo.com/v7/finance/options/${ticker}`;
+    const response = await fetch(url);
 
-  if (!firstCall) {
-    document.getElementById("result").innerHTML = `<p>No call options available.</p>`;
-    return;
+    if (!response.ok) {
+      console.error("Yahoo response error:", response.status);
+      return res.status(502).json({ error: "Failed to fetch Yahoo Finance data" });
+    }
+
+    const data = await response.json();
+    console.log("Yahoo data:", JSON.stringify(data).slice(0, 500)); // trim to avoid flood
+
+    const result = data?.optionChain?.result?.[0];
+    if (!result || !result.options || result.options.length === 0) {
+      return res.status(404).json({ error: "No option data found for this ticker" });
+    }
+
+    const quote = result.quote;
+    const options = result.options[0];
+
+    return res.status(200).json({
+      price: quote?.regularMarketPrice ?? "N/A",
+      calls: options.calls ?? [],
+      puts: options.puts ?? [],
+    });
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    return res.status(500).json({ error: "Internal server error" });
   }
-
-  const avgPrice = (firstCall.bid + firstCall.ask) / 2;
-
-  document.getElementById("result").innerHTML = `
-    <p>Underlying Price: $${price}</p>
-    <p>First Call Strike: ${firstCall.strike}</p>
-    <p>Bid/Ask: ${firstCall.bid} / ${firstCall.ask}</p>
-    <p>Estimated Value: $${avgPrice.toFixed(2)}</p>
-  `;
 }
