@@ -1,4 +1,4 @@
-import * as eta from 'eta';
+import { render } from 'eta';
 
 export default async function handler(req, res) {
   const { ticker = "SPY" } = req.query;
@@ -14,20 +14,20 @@ export default async function handler(req, res) {
   <html>
     <head>
       <title><%= it.title %></title>
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">      
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     </head>
-    <body>
+    <body class="container mt-4">
       <h1>Hello <%= it.user %>!</h1>
-      <ul>
+      <ul class="list-group">
         <% for (let item of it.items) { %>
-          <li><%= item %></li>
+          <li class="list-group-item"><%= item %></li>
         <% } %>
       </ul>
     </body>
   </html>`;
 
   try {
-    const html = eta.render(template, data);
+    const html = render(template, data);
     res.setHeader("Content-Type", "text/html");
     res.status(200).send(html);
   } catch (error) {
