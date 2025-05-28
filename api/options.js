@@ -1,4 +1,4 @@
-async function getData() {
+export async function getData() {
   const ticker = document.getElementById("ticker").value.toUpperCase();
   const res = await fetch(`/api/options?ticker=${ticker}`);
   const data = await res.json();
