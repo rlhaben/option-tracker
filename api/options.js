@@ -1,4 +1,4 @@
-import eta from 'eta';
+import * as eta from 'eta';
 
 export default async function handler(req, res) {
   const { ticker = "SPY" } = req.query;
@@ -14,6 +14,7 @@ export default async function handler(req, res) {
   <html>
     <head>
       <title><%= it.title %></title>
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">      
     </head>
     <body>
       <h1>Hello <%= it.user %>!</h1>
