@@ -7,9 +7,9 @@ export default async function handler(req, res) {
     const response = await fetch(url);
     const data = await response.json();
 
-    const result = data.optionChain.result[0];
+    const result = data.optionChain.result;
     const quote = result.quote;
-    const options = result.options[0];
+    const options = result.options;
 
     res.status(200).json({
       price: quote.regularMarketPrice,
